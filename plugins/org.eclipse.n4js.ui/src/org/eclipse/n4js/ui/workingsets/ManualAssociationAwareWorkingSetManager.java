@@ -36,6 +36,7 @@ import org.eclipse.n4js.json.JSON.JSONDocument;
 import org.eclipse.n4js.json.JSON.JSONObject;
 import org.eclipse.n4js.json.JSON.NameValuePair;
 import org.eclipse.n4js.json.model.utils.JSONModelUtils;
+import org.eclipse.n4js.json.utils.JSONUtils;
 import org.eclipse.n4js.ui.ImageDescriptorCache.ImageRef;
 import org.eclipse.n4js.utils.Diff;
 import org.eclipse.swt.graphics.Image;
@@ -143,11 +144,11 @@ public class ManualAssociationAwareWorkingSetManager extends WorkingSetManagerIm
 		JSONObject jsonObj = JSONModelUtils.createObject(assocs,
 				Function.identity(),
 				coll -> JSONModelUtils.createStringArray(coll));
-		return JSONModelUtils.serializeJSON(jsonObj);
+		return JSONUtils.serializeJSON(jsonObj);
 	}
 
 	private ProjectAssociation jsonStringToProjectAssociation(String jsonStr) {
-		JSONDocument doc = JSONModelUtils.parseJSON(jsonStr);
+		JSONDocument doc = JSONUtils.parseJSON(jsonStr);
 		JSONObject obj = JSONModelUtils.getContent(doc, JSONObject.class);
 		if (doc == null) {
 			return null;

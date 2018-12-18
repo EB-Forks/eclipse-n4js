@@ -15,11 +15,11 @@ import org.eclipse.n4js.N4JSInjectorProvider
 import org.eclipse.n4js.json.JSON.JSONDocument
 import org.eclipse.n4js.json.JSONGlobals
 import org.eclipse.n4js.json.JSONParseHelper
+import org.eclipse.n4js.packagejson.PackageJsonHelper
 import org.eclipse.n4js.projectDescription.ModuleFilterType
 import org.eclipse.n4js.projectDescription.ProjectDescription
 import org.eclipse.n4js.projectDescription.ProjectType
 import org.eclipse.n4js.projectDescription.SourceContainerType
-import org.eclipse.n4js.packagejson.PackageJsonHelper
 import org.eclipse.n4js.semver.Semver.TagVersionRequirement
 import org.eclipse.n4js.semver.Semver.VersionRangeSetRequirement
 import org.eclipse.n4js.utils.languages.N4LanguageUtils
@@ -28,8 +28,8 @@ import org.eclipse.xtext.testing.XtextRunner
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import static org.junit.Assert.*
 import static org.eclipse.n4js.packagejson.PackageJsonProperties.*
+import static org.junit.Assert.*
 
 /**
  * Testing the conversion from {@link JSONDocument} to {@link ProjectDescription}.
@@ -311,7 +311,7 @@ class PackageJsonHelperTest {
 		return parseAndConvert(jsonSource, true, DEFAULT_PROJECT_ID);
 	}
 	def private ProjectDescription parseAndConvert(CharSequence jsonSource, boolean applyDefaultValues, String defaultProjectName) {
-		val jsonParseHelper = N4LanguageUtils.getServiceForContext(JSONGlobals.FILE_EXTENSION, JSONParseHelper).get();
+		val jsonParseHelper = N4LanguageUtils.getServiceForContext(JSONGlobals.JSON_FILE_EXTENSION, JSONParseHelper).get();
 		val jsonDocument = jsonParseHelper.parseSuccessfully(jsonSource);
 		val pd = packageJsonHelper.convertToProjectDescription(jsonDocument, applyDefaultValues, defaultProjectName);
 		return pd;

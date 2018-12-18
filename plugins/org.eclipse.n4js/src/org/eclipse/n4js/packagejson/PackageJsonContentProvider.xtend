@@ -21,21 +21,21 @@ import org.eclipse.n4js.json.model.utils.JSONModelUtils
 import org.eclipse.n4js.projectDescription.ProjectType
 import org.eclipse.n4js.projectDescription.SourceContainerType
 
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.VERSION
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.IMPLEMENTED_PROJECTS
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.NAME
 import static org.eclipse.n4js.packagejson.PackageJsonProperties.DEPENDENCIES
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.VENDOR_ID
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.SOURCES
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.N4JS
 import static org.eclipse.n4js.packagejson.PackageJsonProperties.EXTENDED_RUNTIME_ENVIRONMENT
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.REQUIRED_RUNTIME_LIBRARIES
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.PROJECT_TYPE
 import static org.eclipse.n4js.packagejson.PackageJsonProperties.IMPLEMENTATION_ID
-import static org.eclipse.n4js.packagejson.PackageJsonProperties.PROVIDED_RUNTIME_LIBRARIES
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.IMPLEMENTED_PROJECTS
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.N4JS
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.NAME
 import static org.eclipse.n4js.packagejson.PackageJsonProperties.OUTPUT
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.PROJECT_TYPE
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.PROVIDED_RUNTIME_LIBRARIES
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.REQUIRED_RUNTIME_LIBRARIES
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.SOURCES
 import static org.eclipse.n4js.packagejson.PackageJsonProperties.TESTED_PROJECTS
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.VENDOR_ID
 import static org.eclipse.n4js.packagejson.PackageJsonProperties.VENDOR_NAME
+import static org.eclipse.n4js.packagejson.PackageJsonProperties.VERSION
 
 /**
  * Class for providing the content of N4JS-specific package.json files.

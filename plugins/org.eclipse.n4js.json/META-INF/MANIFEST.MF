@@ -12,7 +12,8 @@ Require-Bundle: org.eclipse.xtext.xbase,
  org.eclipse.n4js.common.unicode,
  org.eclipse.n4js.utils,
  org.eclipse.xtext.xtext.generator,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: org.eclipse.n4js.json
 Export-Package: org.eclipse.n4js.json,
@@ -22,5 +23,6 @@ Export-Package: org.eclipse.n4js.json,
  org.eclipse.n4js.json.resource,
  org.eclipse.n4js.json.serializer,
  org.eclipse.n4js.json.services,
+ org.eclipse.n4js.json.utils,
  org.eclipse.n4js.json.validation,
  org.eclipse.n4js.json.validation.extension

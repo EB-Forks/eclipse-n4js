@@ -12,16 +12,16 @@ package org.eclipse.n4js.packagejson
 
 import java.util.Collection
 import java.util.Map
+import java.util.SortedMap
+import java.util.TreeMap
 import org.eclipse.n4js.json.JSON.JSONDocument
+import org.eclipse.n4js.json.utils.JSONUtils
 import org.eclipse.n4js.projectDescription.ProjectType
 import org.eclipse.n4js.projectDescription.SourceContainerType
 import org.eclipse.n4js.utils.ProjectDescriptionLoader
 
 import static com.google.common.base.Optional.fromNullable
 import static com.google.common.base.Preconditions.checkNotNull
-import java.util.SortedMap
-import java.util.TreeMap
-import org.eclipse.n4js.json.model.utils.JSONModelUtils
 
 /**
  * Convenient builder for creating the N4JS package.json compliant {@link JSONDocument} model 
@@ -76,7 +76,7 @@ public class PackageJsonBuilder {
 	 */
 	def String build() {
 		val document = this.buildModel();
-		return JSONModelUtils.serializeJSON(document);
+		return JSONUtils.serializeJSON(document);
 	}
 
 	/**

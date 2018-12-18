@@ -30,6 +30,7 @@ import org.eclipse.n4js.json.JSON.JSONDocument;
 import org.eclipse.n4js.json.JSON.JSONObject;
 import org.eclipse.n4js.json.JSON.JSONValue;
 import org.eclipse.n4js.json.model.utils.JSONModelUtils;
+import org.eclipse.n4js.json.utils.JSONUtils;
 
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.collect.ImmutableMap;
@@ -95,7 +96,7 @@ public class ExternalLibraryPreferenceModel {
 	 * @return a new preference model instance.
 	 */
 	public static ExternalLibraryPreferenceModel createFromJson(final String jsonString) {
-		JSONDocument document = JSONModelUtils.parseJSON(jsonString);
+		JSONDocument document = JSONUtils.parseJSON(jsonString);
 		if (document == null) {
 			throw new RuntimeException("Error occurred while trying to parse JSON string.");
 		}
@@ -262,7 +263,7 @@ public class ExternalLibraryPreferenceModel {
 		final JSONObject obj = JSONModelUtils.createObject(
 				ImmutableMap.of(PROP_EXTERNAL_LIBRARY_LOCATIONS, extLibLocsValue));
 		final JSONDocument doc = JSONModelUtils.createDocument(obj);
-		return JSONModelUtils.serializeJSON(doc);
+		return JSONUtils.serializeJSON(doc);
 	}
 
 	@Override

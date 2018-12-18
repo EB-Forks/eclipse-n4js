@@ -7,12 +7,12 @@ import java.util.Set;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.n4js.json.JSONGlobals;
 import org.eclipse.n4js.json.JSON.JSONArray;
 import org.eclipse.n4js.json.JSON.JSONDocument;
 import org.eclipse.n4js.json.JSON.JSONObject;
 import org.eclipse.n4js.json.JSON.JSONStringLiteral;
 import org.eclipse.n4js.json.JSON.NameValuePair;
-import org.eclipse.n4js.json.model.utils.JSONModelUtils;
 import org.eclipse.n4js.json.ui.contentassist.IJSONProposalProvider;
 import org.eclipse.n4js.json.ui.contentassist.JSONProposalFactory;
 import org.eclipse.n4js.packagejson.PackageJsonProperties;
@@ -46,7 +46,7 @@ public class PackageJsonProposalProvider implements IJSONProposalProvider {
 			ICompletionProposalAcceptor acceptor) {
 
 		JSONProposalFactory nvpFactory = N4LanguageUtils
-				.getServiceForContext(JSONModelUtils.FILE_EXTENSION, JSONProposalFactory.class).get();
+				.getServiceForContext(JSONGlobals.JSON_FILE_EXTENSION, JSONProposalFactory.class).get();
 
 		List<String> namePath = getJsonPathNames(model);
 		Set<String> alreadyUsedNames = getAlreadyUsedNames(model);

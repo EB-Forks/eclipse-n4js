@@ -38,6 +38,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.n4js.N4JSGlobals
 import org.eclipse.n4js.external.ExternalIndexSynchronizer
+import org.eclipse.n4js.external.ExternalLibraryWorkspace
 import org.eclipse.n4js.external.ShadowingInfoHelper
 import org.eclipse.n4js.json.JSON.JSONArray
 import org.eclipse.n4js.json.JSON.JSONDocument
@@ -88,7 +89,6 @@ import static org.eclipse.n4js.validation.IssueCodes.*
 import static org.eclipse.n4js.validation.validators.packagejson.ProjectTypePredicate.*
 
 import static extension com.google.common.base.Strings.nullToEmpty
-import org.eclipse.n4js.external.ExternalLibraryWorkspace
 
 /**
  * A JSON validator extension that validates {@code package.json} resources in the context

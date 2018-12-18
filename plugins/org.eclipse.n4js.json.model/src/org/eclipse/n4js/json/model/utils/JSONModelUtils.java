@@ -10,8 +10,6 @@
  */
 package org.eclipse.n4js.json.model.utils;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,10 +22,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.n4js.json.JSON.JSONArray;
 import org.eclipse.n4js.json.JSON.JSONDocument;
@@ -37,10 +33,6 @@ import org.eclipse.n4js.json.JSON.JSONPackage;
 import org.eclipse.n4js.json.JSON.JSONStringLiteral;
 import org.eclipse.n4js.json.JSON.JSONValue;
 import org.eclipse.n4js.json.JSON.NameValuePair;
-import org.eclipse.n4js.utils.languages.N4LanguageUtils;
-import org.eclipse.n4js.utils.languages.N4LanguageUtils.ParseResult;
-import org.eclipse.xtext.resource.SaveOptions;
-import org.eclipse.xtext.serializer.ISerializer;
 
 import com.google.common.base.Strings;
 
@@ -48,9 +40,6 @@ import com.google.common.base.Strings;
  * Utility methods for more convenient access to elements of the {@link JSONPackage} model.
  */
 public class JSONModelUtils {
-
-	/** The JSON file extension. */
-	public static final String FILE_EXTENSION = "json";
 
 	/**
 	 * If given JSON value is a {@link JSONStringLiteral}, returns its value (possibly the empty string), otherwise
@@ -512,49 +501,6 @@ public class JSONModelUtils {
 		JSONDocument result = JSONFactory.eINSTANCE.createJSONDocument();
 		result.setContent(content);
 		return result;
-	}
-
-	/**
-	 * Parses the given string as a JSON document. Returns <code>null</code> in case of syntax errors. If more
-	 * fine-grained error handling is needed, use {@link N4LanguageUtils#parseXtextLanguage(String, Class, String)}
-	 * instead.
-	 */
-	public static JSONDocument parseJSON(String jsonString) {
-		ParseResult<JSONDocument> result = N4LanguageUtils.parseXtextLanguage(FILE_EXTENSION, JSONDocument.class,
-				jsonString);
-		return result.errors.isEmpty() ? result.ast : null;
-	}
-
-	/**
-	 * Like {@link #serializeJSON(JSONDocument)}, but accepts any kind of {@link JSONValue}.
-	 */
-	public static String serializeJSON(JSONValue value) {
-		return serializeJSON(createDocument(value));
-	}
-
-	/**
-	 * Serializes the given {@link JSONDocument} using the Xtext serialization facilities provided by the JSON language.
-	 */
-	public static String serializeJSON(JSONDocument document) {
-		ISerializer jsonSerializer = N4LanguageUtils.getServiceForContext(FILE_EXTENSION, ISerializer.class).get();
-		ResourceSet resourceSet = N4LanguageUtils.getServiceForContext(FILE_EXTENSION, ResourceSet.class).get();
-
-		// Use temporary Resource as AbstractFormatter2 implementations can only format
-		// semantic elements that are contained in a Resource.
-		Resource temporaryResource = resourceSet.createResource(URI.createFileURI("__synthetic." + FILE_EXTENSION));
-		temporaryResource.getContents().add(document);
-
-		// create string writer as serialization output
-		StringWriter writer = new StringWriter();
-
-		// enable formatting as serialization option
-		SaveOptions serializerOptions = SaveOptions.newBuilder().format().getOptions();
-		try {
-			jsonSerializer.serialize(document, writer, serializerOptions);
-			return writer.toString();
-		} catch (IOException e) {
-			throw new RuntimeException("Failed to serialize JSONDocument " + document, e);
-		}
 	}
 
 	/**

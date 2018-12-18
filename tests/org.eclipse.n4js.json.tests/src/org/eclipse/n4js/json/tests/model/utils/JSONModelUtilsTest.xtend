@@ -124,10 +124,8 @@ class JSONModelUtilsTest extends Assert {
 
 	// FIXME use the helper method instead of the following!!!!
 	private def String serializeJSON(JSONDocument document) {
-		val ISerializer jsonSerializer = N4LanguageUtils.getServiceForContext(JSONGlobals.FILE_EXTENSION, ISerializer).
-			get();
-		val ResourceSet resourceSet = N4LanguageUtils.getServiceForContext(JSONGlobals.FILE_EXTENSION, ResourceSet).
-			get();
+		val ISerializer jsonSerializer = N4LanguageUtils.getServiceForContext(JSONGlobals.JSON_FILE_EXTENSION, ISerializer).get();
+		val ResourceSet resourceSet = N4LanguageUtils.getServiceForContext(JSONGlobals.JSON_FILE_EXTENSION, ResourceSet).get();
 		// Use temporary Resource as AbstractFormatter2 implementations can only format
 		// semantic elements that are contained in a Resource.
 		val Resource temporaryResource = resourceSet.createResource(URI.createFileURI("__synthetic.json"));

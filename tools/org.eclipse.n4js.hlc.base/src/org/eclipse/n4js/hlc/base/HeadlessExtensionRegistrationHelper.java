@@ -166,7 +166,7 @@ public class HeadlessExtensionRegistrationHelper {
 	 */
 	private void registerJSONLanguageExtension() {
 		final IResourceServiceProvider jsonServiceProvider = (IResourceServiceProvider) IResourceServiceProvider.Registry.INSTANCE
-				.getExtensionToFactoryMap().get(JSONGlobals.FILE_EXTENSION);
+				.getExtensionToFactoryMap().get(JSONGlobals.JSON_FILE_EXTENSION);
 
 		if (jsonServiceProvider == null) {
 			throw new IllegalStateException("Could not obtain the IResourceServiceProvider for the JSON language. "

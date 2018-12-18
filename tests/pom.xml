@@ -301,7 +301,7 @@ Contributors:
 										<artifactId>org.eclipse.n4js.sdk</artifactId>
 										<version>0.0.0</version>
 									</dependency>
-									</dependencies>
+								</dependencies>
 								<includes>
 									<include>**/*PluginUITest.java</include>
 								</includes>
