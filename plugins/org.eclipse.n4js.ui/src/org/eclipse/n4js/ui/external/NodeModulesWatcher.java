@@ -168,22 +168,23 @@ public class NodeModulesWatcher implements Closeable {
 	}
 
 	private void processKey(WatchKey key, List<NodeModulesChange> addChangesHere) {
-		Path keyPath = (Path) key.watchable();
-		for (WatchEvent<?> event : key.pollEvents()) {
-			processEvent(keyPath, event, addChangesHere);
+		List<WatchEvent<?>> sortedEvents = moveDeletionsToFront(key.pollEvents());
+		for (WatchEvent<?> event : sortedEvents) {
+			processEvent(key, event, addChangesHere);
 		}
 		key.reset();
 	}
 
-	private void processEvent(Path keyPath, WatchEvent<?> event, List<NodeModulesChange> addChangesHere) {
+	private void processEvent(WatchKey key, WatchEvent<?> event, List<NodeModulesChange> addChangesHere) {
 		if (event.kind() == OVERFLOW) {
-			return; // FIXME!!!
+			return; // TODO consider unregistering and then re-registering everything
 		}
 		Path contextPath = (Path) event.context();
 		if (contextPath == null || contextPath.getNameCount() != 1) {
 			return;
 		}
 		WatchEvent.Kind<?> kind = event.kind();
+		Path keyPath = (Path) key.watchable();
 		Path changedPath = keyPath.resolve(contextPath);
 		processEvent(kind, changedPath, addChangesHere);
 	}
@@ -216,10 +217,10 @@ public class NodeModulesWatcher implements Closeable {
 			if (N4JSGlobals.PACKAGE_JSON.equals(changedFileName)) {
 				// any change of a package.json (i.e. create, modify, delete) is forwarded as a modification of the
 				// containing npm package:
-				Path nodeModulesFolder = parentPath.getParent();
+				Path projectFolder = parentPath.getParent().getParent();
 				String projectName = parentPath.getFileName().toString();
 				addChangesHere.add(new NodeModulesChange(
-						NodeModulesChange.Kind.MODIFY, nodeModulesFolder, projectName));
+						NodeModulesChange.Kind.MODIFY, projectFolder, projectName));
 			}
 		}
 		// ignore all other changes
@@ -227,38 +228,50 @@ public class NodeModulesWatcher implements Closeable {
 
 	private void onNewNodeModulesFolder(Path projectFolder, List<NodeModulesChange> addChangesHere) {
 		Set<String> packageNames = registry.registerNodeModulesFolder(projectFolder);
-		// forward events for packages that already existed when the node_modules folder was added
+		// forward events for packages that already existed when the node_modules folder was registered
 		for (String packageName : packageNames) {
-			Path nodeModulesFolder = projectFolder.resolve(N4JSGlobals.NODE_MODULES);
 			addChangesHere.add(new NodeModulesChange(
-					NodeModulesChange.Kind.CREATE, nodeModulesFolder, packageName));
+					NodeModulesChange.Kind.CREATE, projectFolder, packageName));
 		}
 	}
 
 	private void onDeleteNodeModulesFolder(Path projectFolder, List<NodeModulesChange> addChangesHere) {
 		Set<String> packageNames = registry.unregisterNodeModulesFolder(projectFolder);
-		// deletion of node_modules folder triggers deletion events for all package sub-folders
+		// deletion of a node_modules folder triggers deletion events for all known packages
 		for (String packageName : packageNames) {
-			Path nodeModulesFolder = projectFolder.resolve(N4JSGlobals.NODE_MODULES);
 			addChangesHere.add(new NodeModulesChange(
-					NodeModulesChange.Kind.DELETE, nodeModulesFolder, packageName));
+					NodeModulesChange.Kind.DELETE, projectFolder, packageName));
 		}
 	}
 
 	private void onNewPackage(Path projectFolder, String packageName, List<NodeModulesChange> addChangesHere) {
 		registry.registerPackage(projectFolder, packageName);
 		// forward event for new package
-		Path nodeModulesFolder = projectFolder.resolve(N4JSGlobals.NODE_MODULES);
 		addChangesHere.add(new NodeModulesChange(
-				NodeModulesChange.Kind.CREATE, nodeModulesFolder, packageName));
+				NodeModulesChange.Kind.CREATE, projectFolder, packageName));
 	}
 
 	private void onDeletePackage(Path projectFolder, String packageName, List<NodeModulesChange> addChangesHere) {
 		if (registry.unregisterPackage(projectFolder, packageName)) {
-			Path nodeModulesFolder = projectFolder.resolve(N4JSGlobals.NODE_MODULES);
+			// forward event for deleted package
 			addChangesHere.add(new NodeModulesChange(
-					NodeModulesChange.Kind.DELETE, nodeModulesFolder, packageName));
+					NodeModulesChange.Kind.DELETE, projectFolder, packageName));
 		}
+	}
+
+	private static List<WatchEvent<?>> moveDeletionsToFront(List<WatchEvent<?>> events) {
+		List<WatchEvent<?>> result = new ArrayList<>(events);
+		result.sort((e1, e2) -> {
+			WatchEvent.Kind<?> k1 = e1.kind();
+			WatchEvent.Kind<?> k2 = e2.kind();
+			if (k1 == ENTRY_DELETE && k2 != ENTRY_DELETE) {
+				return -1;
+			} else if (k1 != ENTRY_DELETE && k2 == ENTRY_DELETE) {
+				return 1;
+			}
+			return 0;
+		});
+		return result;
 	}
 
 	private final class PathRegistry {

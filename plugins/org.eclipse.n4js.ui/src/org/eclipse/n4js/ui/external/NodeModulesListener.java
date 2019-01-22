@@ -20,28 +20,53 @@ import java.util.Objects;
  */
 public interface NodeModulesListener {
 
+	/**
+	 * Class for representing a change inside a Javascript project related to the npm packages installed in its
+	 * node_modules folder.
+	 */
 	public static final class NodeModulesChange {
 
+		/**
+		 * Kind of change that may occur in the node_modules folder of a Javascript project.
+		 */
 		public enum Kind {
-			CREATE, MODIFY, DELETE
+			/** An npm package was created. */
+			CREATE,
+			/** An npm package was modified, i.e. its package.json file was created, modified, or deleted. */
+			MODIFY,
+			/** An npm package was deleted. */
+			DELETE
 		}
 
+		/**
+		 * Kind of change that happened.
+		 */
 		public final Kind kind;
-		public final Path nodeModulesFolder;
+		/**
+		 * Root folder of the project in which the change occurred, i.e. a folder that was registered via
+		 * {@link NodeModulesWatcher#addProjectFolder(Path) #addProjectFolder(Path)}
+		 */
+		public final Path projectFolder;
+		/**
+		 * Name of the npm package that was created, modified, or deleted (depending on {@link #kind}).
+		 */
 		public final String packageName;
 
-		public NodeModulesChange(Kind kind, Path nodeModulesFolder, String packageName) {
+		/**
+		 * Creates an instance.
+		 */
+		public NodeModulesChange(Kind kind, Path projectFolder, String packageName) {
 			Objects.requireNonNull(kind);
-			Objects.requireNonNull(nodeModulesFolder);
+			Objects.requireNonNull(projectFolder);
 			Objects.requireNonNull(packageName);
 			this.kind = kind;
-			this.nodeModulesFolder = nodeModulesFolder;
+			this.projectFolder = projectFolder;
 			this.packageName = packageName;
 		}
 
 		@Override
 		public String toString() {
-			return kind.toString() + ": " + packageName + " in " + nodeModulesFolder;
+			return kind.toString() + ": " + packageName + " in " + projectFolder;
 		}
 	}
 
