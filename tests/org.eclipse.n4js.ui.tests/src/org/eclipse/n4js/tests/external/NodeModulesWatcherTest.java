@@ -11,6 +11,7 @@
 package org.eclipse.n4js.tests.external;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,19 +20,20 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 import org.eclipse.n4js.ui.external.NodeModulesListener.NodeModulesChange;
 import org.eclipse.n4js.ui.external.NodeModulesWatcher;
 import org.eclipse.n4js.utils.io.FileDeleter;
-import org.eclipse.swt.widgets.Display;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
+
+import com.google.common.base.Optional;
 
 /**
  * Testing {@link NodeModulesWatcher}.
@@ -39,35 +41,22 @@ import org.junit.Test;
 @SuppressWarnings("javadoc")
 public class NodeModulesWatcherTest {
 
-	private static Display display;
 	private NodeModulesWatcher watcher = null;
 	private File projectFolder = null;
 	private File nodeModulesFolder = null;
 
-	private final Queue<List<NodeModulesChange>> eventQueue = new ConcurrentLinkedQueue<>();
+	private final BlockingQueue<List<NodeModulesChange>> eventQueue = new LinkedBlockingQueue<>();
 
 	/**
 	 * In case of failures, the tests in this class may well wait for an event that never arrives. Thus we use this
 	 * timeout for all test methods.
 	 */
-	// FIXME !!!!!!!
-	// @Rule
-	// public Timeout globalTimeout = Timeout.seconds(20);
-
-	@BeforeClass
-	public static void beforeClass() {
-		display = Display.getDefault();
-	}
-
-	@AfterClass
-	public static void afterClass() {
-		display.dispose();
-		display = null;
-	}
+	@Rule
+	public Timeout globalTimeout = Timeout.seconds(60);
 
 	@Before
 	public void before() throws Exception {
-		watcher = new NodeModulesWatcher(display);
+		watcher = new NodeModulesWatcher(Optional.absent());
 		watcher.addListener(changes -> {
 			eventQueue.add(changes);
 		});
@@ -82,6 +71,8 @@ public class NodeModulesWatcherTest {
 
 	@After
 	public void after() {
+		assertTrue("eventQueue contained unconsumed event(s) after test method", eventQueue.isEmpty());
+
 		try {
 			FileDeleter.delete(projectFolder);
 		} catch (IOException e) {
@@ -397,13 +388,8 @@ public class NodeModulesWatcherTest {
 		assertChanges(waitForChanges(), "MODIFY: lodash in " + projectFolder);
 	}
 
-	private List<NodeModulesChange> waitForChanges() {
-		List<NodeModulesChange> result;
-		while ((result = eventQueue.poll()) == null) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
-			}
-		}
+	private List<NodeModulesChange> waitForChanges() throws InterruptedException {
+		List<NodeModulesChange> result = eventQueue.take();
 		dumpChanges(result);
 		return result;
 	}

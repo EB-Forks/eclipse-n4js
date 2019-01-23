@@ -30,6 +30,8 @@ import org.eclipse.n4js.N4JSGlobals;
 import org.eclipse.n4js.ui.external.NodeModulesListener.NodeModulesChange;
 import org.eclipse.swt.widgets.Display;
 
+import com.google.common.base.Optional;
+
 /**
  * Utility class for receiving file change notifications related to one or more <code>node_modules</code> locations on
  * disk. Since the library manager supports <code>node_modules</code> locations outside the Eclipse workspace, this
@@ -50,8 +52,8 @@ import org.eclipse.swt.widgets.Display;
  */
 public class NodeModulesWatcher implements Closeable {
 
-	/** Only used for notifying listeners with {@link Display#asyncExec(Runnable)}. */
-	private final Display display;
+	/** Only used for notifying listeners with {@link Display#asyncExec(Runnable)}, if provided. */
+	private final Optional<Display> display;
 
 	private final WatchService watcher;
 	private final Thread thread;
@@ -63,15 +65,16 @@ public class NodeModulesWatcher implements Closeable {
 	 * Creates an instance. For details see {@link NodeModulesWatcher}.
 	 *
 	 * @param display
-	 *            only used for event notifications. Listeners added with {@link #addListener(NodeModulesListener)} will
-	 *            be invoked from this display's UI thread. Intended for use within Eclipse to have listeners be invoked
-	 *            on Eclipse's main thread.
+	 *            if provided, listeners added with {@link #addListener(NodeModulesListener)} will be invoked from this
+	 *            display's UI thread via {@link Display#asyncExec(Runnable)}. This is intended for use within Eclipse
+	 *            to have listeners be invoked on Eclipse's main thread. If this argument is not provided, listeners
+	 *            will be invoked directly from this watcher's internal worker thread.
 	 * @throws IOException
 	 *             see {@link FileSystem#newWatchService()}.
 	 * @throws UnsupportedOperationException
 	 *             see {@link FileSystem#newWatchService()}.
 	 */
-	public NodeModulesWatcher(Display display) throws IOException {
+	public NodeModulesWatcher(Optional<Display> display) throws IOException {
 		this.display = display;
 		this.watcher = FileSystems.getDefault().newWatchService();
 		this.thread = new Thread(this::loop, NodeModulesWatcher.class.getSimpleName() + "'s Thread");
@@ -136,7 +139,11 @@ public class NodeModulesWatcher implements Closeable {
 			return;
 		}
 		for (NodeModulesListener l : listeners) {
-			display.asyncExec(() -> l.onChanges(changes));
+			if (display.isPresent()) {
+				display.get().asyncExec(() -> l.onChanges(changes));
+			} else {
+				l.onChanges(changes);
+			}
 		}
 	}
 
