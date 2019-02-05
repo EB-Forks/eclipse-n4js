@@ -31,13 +31,13 @@ import org.junit.runner.RunWith
 
 @RunWith(XtextRunner)
 @InjectWith(N4JSInjectorProvider)
-class N4JSResourcePluginTest {
+class N4JSResourcePluginUITest {
 
-	@Inject private Provider<XtextResourceSet> resourceSetProvider
+	@Inject Provider<XtextResourceSet> resourceSetProvider
 
-	@Inject private OutdatedStateManager outdatedStateManager
+	@Inject OutdatedStateManager outdatedStateManager
 
-	@Inject private OperationCanceledManager cancelManager
+	@Inject OperationCanceledManager cancelManager
 
 	// moved here from N4JSResourceTest because it must be run as a plugin test as of Eclipse 2018-12:
 	@Test
