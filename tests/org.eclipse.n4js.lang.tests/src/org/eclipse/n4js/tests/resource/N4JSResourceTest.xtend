@@ -19,6 +19,7 @@ import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
+import org.eclipse.jface.text.DocumentEvent
 import org.eclipse.n4js.N4JSInjectorProvider
 import org.eclipse.n4js.n4JS.Script
 import org.eclipse.n4js.resource.N4JSResource
@@ -28,13 +29,20 @@ import org.eclipse.n4js.ts.types.TModule
 import org.eclipse.n4js.ts.types.TypesPackage
 import org.eclipse.xtext.naming.IQualifiedNameConverter
 import org.eclipse.xtext.naming.QualifiedName
+import org.eclipse.xtext.resource.DerivedStateAwareResource
+import org.eclipse.xtext.resource.IDerivedStateComputer
 import org.eclipse.xtext.resource.IResourceDescription
+import org.eclipse.xtext.resource.OutdatedStateManager
 import org.eclipse.xtext.resource.XtextResourceSet
 import org.eclipse.xtext.resource.impl.AbstractResourceDescription
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
+import org.eclipse.xtext.service.OperationCanceledManager
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.XtextRunner
 import org.eclipse.xtext.testing.util.ParseHelper
+import org.eclipse.xtext.ui.editor.model.DocumentTokenSource
+import org.eclipse.xtext.ui.editor.model.XtextDocument
+import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -47,6 +55,10 @@ class N4JSResourceTest {
 	@Inject IQualifiedNameConverter qualifiedNameConverter
 
 	@Inject Provider<XtextResourceSet> resourceSetProvider
+
+	@Inject OutdatedStateManager outdatedStateManager
+
+	@Inject OperationCanceledManager cancelManager
 
 	@Inject
 	ResourceDescriptionsProvider resourceDescriptionsProvider;
@@ -205,6 +217,38 @@ class N4JSResourceTest {
 
 		val basicList = loadedFromDescription.contents as BasicEList<EObject>
 		assertTrue(basicList.basicGet(0).eIsProxy)
+	}
+
+	@Test
+	def void testDisposeDocumentDoesntTriggerResolution() {
+		val someResource = resourceSetProvider.get.getResource(URI.createURI("src/org/eclipse/n4js/tests/scoping/Supplier.n4js"), true) as N4JSResource
+		someResource.derivedStateComputer = new IDerivedStateComputer() {
+
+			override discardDerivedState(DerivedStateAwareResource resource) {
+				Assert.fail('Unexpected access to the derived state computer')
+			}
+
+			override installDerivedState(DerivedStateAwareResource resource, boolean preLinkingPhase) {
+				Assert.fail('Unexpected access to the derived state computer')
+			}
+
+		}
+		val doc = new XtextDocument(new DocumentTokenSource() {
+			override protected computeDamageRegion(DocumentEvent e) {
+				return null
+			}
+		}, null, outdatedStateManager, cancelManager)
+		doc.input = someResource
+		Assert.assertFalse(someResource.script.eIsProxy)
+try {
+// as of Xtext 2.16.0 the following will trigger loading of the resource, leading to an exception as asserted below;
+// see https://github.com/eclipse/xtext-eclipse/issues/967
+// (remove this once issue #967 is fixed)
+		doc.disposeInput // no exception
+Assert.fail("Xtext issue #967 seems to be fixed! Remove temporary workaround!");
+} catch(IllegalStateException e) {
+Assert.assertEquals("unexpected exception message", "Missing adapter for BuiltInTypeScope", e.message)
+}
 	}
 
 
