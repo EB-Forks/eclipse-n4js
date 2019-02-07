@@ -48,6 +48,7 @@ pipeline {
             steps {
                 script {
                         sh """\
+                                uname -a
                                 pwd
                                 git status
                                 ls -la
