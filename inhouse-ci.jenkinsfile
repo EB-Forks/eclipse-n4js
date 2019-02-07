@@ -51,6 +51,7 @@ pipeline {
                                 cat /etc/os-release
                                 uname -r
                                 lsb_release -a
+                                apt-cache policy libgtk2.0-0 libgtk-3-0
                                 pwd
                                 git status
                                 ls -la
