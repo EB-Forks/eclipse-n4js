@@ -49,8 +49,8 @@ pipeline {
                 script {
                         sh """\
                                 cat /etc/os-release
-                                hostnamectl
                                 uname -r
+                                lsb_release -a
                                 pwd
                                 git status
                                 ls -la
