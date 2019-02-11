@@ -27,7 +27,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.n4js.external.ExternalLibraryWorkspace;
 import org.eclipse.n4js.external.ExternalProject;
 import org.eclipse.n4js.external.N4JSExternalProject;
-import org.eclipse.n4js.external.TargetPlatformInstallLocationProvider;
+import org.eclipse.n4js.external.libraries.ExternalLibrariesActivator;
 import org.eclipse.n4js.preferences.ExternalLibraryPreferenceStore;
 import org.eclipse.n4js.projectDescription.ProjectDependency;
 import org.eclipse.n4js.projectDescription.ProjectDescription;
@@ -45,11 +45,11 @@ import com.google.common.collect.Lists;
  * This provider creates {@link ExternalProject}s.
  */
 public class ExternalProjectMappings {
-	static final boolean REDUCE_REGISTERED_NPMS = true;
+	/** True: Only compile those projects that are referenced by N4JS projects */
+	public static boolean REDUCE_REGISTERED_NPMS = true;
 
 	final private EclipseBasedN4JSWorkspace userWorkspace;
 	final private ExternalLibraryPreferenceStore preferenceStore;
-	final private TargetPlatformInstallLocationProvider platformLocationProvider;
 
 	/*
 	 * The following collections either contain all npms in the external locations or a reduced set of them. The reduced
@@ -66,10 +66,9 @@ public class ExternalProjectMappings {
 
 	ExternalProjectMappings(EclipseBasedN4JSWorkspace userWorkspace,
 			ExternalLibraryPreferenceStore preferenceStore,
-			TargetPlatformInstallLocationProvider platformLocationProvider,
 			Map<URI, Pair<N4JSExternalProject, ProjectDescription>> completeCache) {
 
-		this(userWorkspace, preferenceStore, platformLocationProvider, completeCache, true);
+		this(userWorkspace, preferenceStore, completeCache, true);
 	}
 
 	/**
@@ -81,12 +80,10 @@ public class ExternalProjectMappings {
 	 */
 	protected ExternalProjectMappings(EclipseBasedN4JSWorkspace userWorkspace,
 			ExternalLibraryPreferenceStore preferenceStore,
-			TargetPlatformInstallLocationProvider platformLocationProvider,
 			Map<URI, Pair<N4JSExternalProject, ProjectDescription>> completeCache, boolean initialized) {
 
 		this.userWorkspace = userWorkspace;
 		this.preferenceStore = preferenceStore;
-		this.platformLocationProvider = platformLocationProvider;
 
 		this.completeCache = completeCache;
 		Mappings mappings = computeMappings();
@@ -138,7 +135,7 @@ public class ExternalProjectMappings {
 
 			// shadowing is done here by checking if an npm is already in the mapping
 			String projectName = ProjectDescriptionUtils.deriveN4JSProjectNameFromURI(projectLocation);
-			if (!completeProjectNameMappingTmp.containsKey(project.getName())) {
+			if (!completeProjectNameMappingTmp.containsKey(projectName)) {
 
 				completeProjectNameMappingTmp.put(projectName, Lists.newArrayList(project));
 				reducedProjectUriMappingTmp.put(projectLocation, pair);
@@ -149,7 +146,8 @@ public class ExternalProjectMappings {
 				reducedProjectsLocationMappingTmp.putIfAbsent(rootLoc, new LinkedList<>());
 				reducedProjectsLocationMappingTmp.get(rootLoc).add(project);
 			} else {
-				completeProjectNameMappingTmp.get(projectName).add(project);
+				List<N4JSExternalProject> list = completeProjectNameMappingTmp.get(projectName);
+				list.add(project);
 			}
 		}
 
@@ -167,13 +165,16 @@ public class ExternalProjectMappings {
 
 		// step 3: reduce to necessary projects
 		if (REDUCE_REGISTERED_NPMS) {
-			java.net.URI nodeModulesURI = platformLocationProvider.getNodeModulesURI();
-			List<N4JSExternalProject> nodeModuleProjects = reducedProjectsLocationMappingTmp.get(nodeModulesURI);
-			if (nodeModuleProjects != null) {
-				for (Iterator<N4JSExternalProject> iter = nodeModuleProjects.iterator(); iter.hasNext();) {
-					URI location = iter.next().getIProject().getLocation();
-					if (!reducedSetURIs.contains(location)) {
-						iter.remove();
+			for (java.net.URI nodeModuleLocation : preferenceStore.getNodeModulesLocations()) {
+				List<N4JSExternalProject> nodeModuleProjects = reducedProjectsLocationMappingTmp
+						.get(nodeModuleLocation);
+
+				if (nodeModuleProjects != null) {
+					for (Iterator<N4JSExternalProject> iter = nodeModuleProjects.iterator(); iter.hasNext();) {
+						URI location = iter.next().getIProject().getLocation();
+						if (!reducedSetURIs.contains(location)) {
+							iter.remove();
+						}
 					}
 				}
 			}
@@ -221,9 +222,15 @@ public class ExternalProjectMappings {
 			depNames.add(name);
 		}
 
-		java.net.URI nodeModulesURI = platformLocationProvider.getNodeModulesURI();
+		// add all shipped npms to user necessary dependencies
 		for (java.net.URI location : reducedProjectsLocationMappingTmp.keySet()) {
-			if (!location.equals(nodeModulesURI)) {
+			String locationStr = location.toString();
+			if (locationStr.endsWith("/")) {
+				locationStr = locationStr.substring(0, locationStr.length() - 1);
+			}
+			int startLastSegment = locationStr.lastIndexOf("/");
+			String locationName = locationStr.substring(startLastSegment + 1);
+			if (ExternalLibrariesActivator.SHIPPED_ROOTS_FOLDER_NAMES.contains(locationName)) {
 				List<N4JSExternalProject> list = reducedProjectsLocationMappingTmp.get(location);
 				for (N4JSExternalProject n4prj : list) {
 					IN4JSProject iProject = n4prj.getIProject();

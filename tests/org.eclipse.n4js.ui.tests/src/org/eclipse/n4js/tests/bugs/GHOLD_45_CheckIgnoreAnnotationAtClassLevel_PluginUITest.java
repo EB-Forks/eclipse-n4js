@@ -218,7 +218,8 @@ public class GHOLD_45_CheckIgnoreAnnotationAtClassLevel_PluginUITest extends Abs
 			return "";
 		}
 		final ProcessConsole processConsole = assertInstanceOf(console, ProcessConsole.class);
-		return processConsole.getDocument().get();
+		final String content = processConsole.getDocument().get();
+		return content;
 	}
 
 	private ILaunchShortcut getLaunchShortcut() {
