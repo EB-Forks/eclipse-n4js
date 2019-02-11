@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
@@ -32,11 +32,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.n4js.json.JSON.JSONDocument;
-import org.eclipse.n4js.json.JSON.JSONObject;
-import org.eclipse.n4js.json.JSON.NameValuePair;
-import org.eclipse.n4js.json.model.utils.JSONModelUtils;
-import org.eclipse.n4js.json.utils.JSONUtils;
 import org.eclipse.n4js.ui.ImageDescriptorCache.ImageRef;
 import org.eclipse.n4js.utils.Diff;
 import org.eclipse.swt.graphics.Image;
@@ -91,12 +86,12 @@ public class ManualAssociationAwareWorkingSetManager extends WorkingSetManagerIm
 
 		if (superSaveResult.isOK()) {
 
-			final Preferences node = getPreferences();
+			final Preferences prefs = getPreferences();
 
 			try {
-				final String associationString = projectAssociationsToJsonString(projectAssociations);
-				node.put(ORDERED_ASSOCIATIONS_KEY, associationString);
-				node.flush();
+				final String associationString = projectAssociationsToString(projectAssociations);
+				prefs.put(ORDERED_ASSOCIATIONS_KEY, associationString);
+				prefs.flush();
 			} catch (final BackingStoreException e) {
 				final String message = "Error occurred while saving state to preference store.";
 				LOGGER.error(message, e);
@@ -117,10 +112,10 @@ public class ManualAssociationAwareWorkingSetManager extends WorkingSetManagerIm
 
 		if (superRestoreResult.isOK()) {
 
-			final Preferences node = getPreferences();
-			final String orderedFilters = node.get(ORDERED_ASSOCIATIONS_KEY, EMPTY_STRING);
+			final Preferences prefs = getPreferences();
+			final String orderedFilters = prefs.get(ORDERED_ASSOCIATIONS_KEY, EMPTY_STRING);
 			if (!Strings.isNullOrEmpty(orderedFilters)) {
-				final ProjectAssociation association = jsonStringToProjectAssociation(orderedFilters);
+				final ProjectAssociation association = stringToProjectAssociation(orderedFilters);
 				if (association == null) {
 					final String message = "Error occurred while deserializing project associations: "
 							+ "\"" + orderedFilters + "\"";
@@ -140,22 +135,33 @@ public class ManualAssociationAwareWorkingSetManager extends WorkingSetManagerIm
 		return superRestoreResult;
 	}
 
-	private String projectAssociationsToJsonString(ProjectAssociation assocs) {
-		JSONObject jsonObj = JSONModelUtils.createObject(assocs,
-				Function.identity(),
-				coll -> JSONModelUtils.createStringArray(coll));
-		return JSONUtils.serializeJSON(jsonObj);
+	private String projectAssociationsToString(ProjectAssociation assocs) {
+		final StringBuilder sb = new StringBuilder();
+		for (Entry<String, Collection<String>> entry : assocs.entrySet()) {
+			if (sb.length() > 0) {
+				sb.append('\n');
+			}
+			sb.append(entry.getKey());
+			for (String assoc : entry.getValue()) {
+				sb.append('\t');
+				sb.append(assoc);
+			}
+		}
+		return sb.toString();
 	}
 
-	private ProjectAssociation jsonStringToProjectAssociation(String jsonStr) {
-		JSONDocument doc = JSONUtils.parseJSON(jsonStr);
-		JSONObject obj = JSONModelUtils.getContent(doc, JSONObject.class);
-		if (doc == null) {
+	private ProjectAssociation stringToProjectAssociation(String str) {
+		if (str == null || str.isEmpty()) {
 			return null;
 		}
 		ProjectAssociation result = new ProjectAssociation();
-		for (NameValuePair nvp : obj.getNameValuePairs()) {
-			result.put(nvp.getName(), JSONModelUtils.asStringsInArrayOrEmpty(nvp.getValue()));
+		final String[] lines = str.split("\n", -1);
+		for (String line : lines) {
+			final String[] columns = line.split("\t", -1);
+			final String key = columns[0];
+			final String[] values = new String[columns.length - 1];
+			System.arraycopy(columns, 1, values, 0, values.length);
+			result.put(key, Arrays.asList(values));
 		}
 		return result;
 	}
