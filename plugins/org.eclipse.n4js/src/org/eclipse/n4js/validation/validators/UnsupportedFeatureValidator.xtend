@@ -10,6 +10,8 @@
  */
 package org.eclipse.n4js.validation.validators
 
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.n4js.n4JS.Argument
 import org.eclipse.n4js.n4JS.BindingPattern
 import org.eclipse.n4js.n4JS.ExportDeclaration
@@ -25,8 +27,6 @@ import org.eclipse.n4js.n4JS.TaggedTemplateString
 import org.eclipse.n4js.validation.ASTStructureValidator
 import org.eclipse.n4js.validation.AbstractN4JSDeclarativeValidator
 import org.eclipse.n4js.validation.IssueCodes
-import org.eclipse.emf.ecore.EObject
-import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.EValidatorRegistrar
@@ -67,13 +67,10 @@ class UnsupportedFeatureValidator extends AbstractN4JSDeclarativeValidator {
 	@Check
 	def void checkSeparateExport(ExportDeclaration exportDecl) {
 		if(exportDecl.exportedElement===null) {
-			if(exportDecl.defaultExport && exportDecl.defaultExportedExpression!==null) {
+			val isSupportedCase = exportDecl.defaultExport && exportDecl.defaultExportedExpression!==null;
+			if(!isSupportedCase) {
 				unsupported(
-					"exporting values (only declared classes, interfaces, enums, functions and variables can be exported)",
-					exportDecl);
-			} else {
-				unsupported(
-					"separate export statements (add keyword 'export' directly before a class, interface, enum, function or variable declaration)",
+					"separate export statements (add keyword 'export' directly before a class, interface, enum, function or variable declaration, or before an expression)",
 					exportDecl);
 			}
 		}

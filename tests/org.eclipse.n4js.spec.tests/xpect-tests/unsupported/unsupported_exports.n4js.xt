@@ -9,7 +9,14 @@
  *   NumberFour AG - Initial API and implementation
  */
 
-/* XPECT_SETUP org.eclipse.n4js.spec.tests.N4JSSpecTest END_SETUP  */
+/* XPECT_SETUP org.eclipse.n4js.spec.tests.N4JSSpecTest
+
+	IssueConfiguration {
+		IssueCode "IMP_DEFAULT_EXPORT_DUPLICATE" { enabled = false }
+	}
+
+	END_SETUP
+ */
 
 
 class C {}
@@ -18,41 +25,26 @@ class D {}
 
 // XPECT errors --> "Unsupported feature: anonymous default export." at "class {}"
 export default class {}
-// XPECT errors ---
-// "Unsupported feature: anonymous default export." at "interface {}"
-// "Duplicate default export." at "default"
-// ---
+// XPECT errors --> "Unsupported feature: anonymous default export." at "interface {}"
 export default interface {}
-// XPECT errors ---
-// "Unsupported feature: anonymous default export." at "enum { YES, NO }"
-// "Duplicate default export." at "default"
-// ---
+// XPECT errors --> "Unsupported feature: anonymous default export." at "enum { YES, NO }"
 export default enum { YES, NO }
-// XPECT errors ---
-// "Unsupported feature: anonymous default export." at "function() {}"
-// "Duplicate default export." at "default"
-// ---
+// XPECT errors --> "Unsupported feature: anonymous default export." at "function() {}"
 export default function() {}
 
 
-// XPECT errors --> "Unsupported feature: separate export statements (add keyword 'export' directly before a class, interface, enum, function or variable declaration)." at "export {C} "
+// XPECT errors --> "Unsupported feature: separate export statements (add keyword 'export' directly before a class, interface, enum, function or variable declaration, or before an expression)." at "export {C} "
 export {C}
 
 
-// XPECT errors --> "Unsupported feature: separate export statements (add keyword 'export' directly before a class, interface, enum, function or variable declaration)." at "export {D as X} "
+// XPECT errors --> "Unsupported feature: separate export statements (add keyword 'export' directly before a class, interface, enum, function or variable declaration, or before an expression)." at "export {D as X} "
 export {D as X}
 
 
-// XPECT errors ---
-// "Unsupported feature: exporting values (only declared classes, interfaces, enums, functions and variables can be exported)." at "export default "hello" "
-// "Duplicate default export." at "default"
-// ---
+// XPECT noerrors -->
 export default "hello"
 
 
-// XPECT errors ---
-// "Unsupported feature: exporting values (only declared classes, interfaces, enums, functions and variables can be exported)." at "export default (class {}) "
-// "Unsupported feature: class expressions." at "class"
-// "Duplicate default export." at "default"
-// ---
+// no errors, except the one about unsupported class expressions:
+// XPECT errors --> "Unsupported feature: class expressions." at "class"
 export default (class {})
