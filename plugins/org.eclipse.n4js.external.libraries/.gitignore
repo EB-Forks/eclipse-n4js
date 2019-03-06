@@ -1,1 +1,3 @@
-shipped-code
+# ignore entire contents of shipped-code folder, EXCEPT the read-me file:
+shipped-code/**
+!shipped-code/README.adoc

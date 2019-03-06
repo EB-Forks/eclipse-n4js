@@ -1,0 +1,16 @@
+////
+Copyright (c) 2019 NumberFour AG.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the Eclipse Public License v1.0
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/epl-v10.html
+
+Contributors:
+  NumberFour AG - Initial API and implementation
+////
+
+During the maven build, this folder will be populated with npm packages intended to be
+bundled with the N4JS IDE. This is done by MWE2 workflow `UpdateShippedCode.mwe2`.
+
+For local testing, workflow `UpdateShippedCode.mwe2` must be run manually before starting
+any tests or launching a runtime Eclipse instance.
