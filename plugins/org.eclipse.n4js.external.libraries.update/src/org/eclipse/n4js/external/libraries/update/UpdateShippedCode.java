@@ -61,8 +61,13 @@ public class UpdateShippedCode implements IWorkflowComponent {
 	/** Name of the n4js-node project */
 	public static String N4JS_NODE_PROJECT_NAME = "n4js-node";
 
+	/** Names of files and folders *not* to be deleted from "shipped-code" folder during cleaning. */
+	private static final String[] FILES_KEPT_IN_SHIPPED_CODE_FOLDER = {
+			"README.adoc"
+	};
+
 	/** Names of files and folders *not* to be copied from "n4js-libs" to the "shipped-code" folder. */
-	private static final String[] IGNORED_FILES = {
+	private static final String[] FILES_IGNORED_IN_N4JS_LIBS_FOLDER = {
 			".DS_Store",
 			".Spotlight-V100",
 			".Trashes",
@@ -162,6 +167,9 @@ public class UpdateShippedCode implements IWorkflowComponent {
 	private static void cleanFolder(File folder) throws IOException {
 		if (folder.exists() && folder.isDirectory()) {
 			for (File child : folder.listFiles()) {
+				if (org.eclipse.xtext.util.Arrays.contains(FILES_KEPT_IN_SHIPPED_CODE_FOLDER, child.getName())) {
+					continue;
+				}
 				FileDeleter.delete(child);
 			}
 		}
@@ -189,7 +197,8 @@ public class UpdateShippedCode implements IWorkflowComponent {
 	}
 
 	private static boolean isFilenameAllowed(Path path) {
-		return !org.eclipse.xtext.util.Arrays.contains(IGNORED_FILES, path.getFileName().toString());
+		return !org.eclipse.xtext.util.Arrays.contains(FILES_IGNORED_IN_N4JS_LIBS_FOLDER,
+				path.getFileName().toString());
 	}
 
 	private static void cleanAndCompile(File... foldersContainingProjectFolders) {
