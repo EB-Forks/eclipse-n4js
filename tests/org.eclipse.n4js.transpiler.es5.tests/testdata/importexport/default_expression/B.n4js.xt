@@ -22,11 +22,11 @@
 /* XPECT output ---
 <==
 stdout:
-TODO
+The value: some value!
 stderr:
 ==>
 --- */
 
 import value from "importexport/default_expression/A"
 
-console.log(value);
+console.log('The value:', value);
